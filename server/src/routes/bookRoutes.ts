@@ -1,18 +1,11 @@
 import express from 'express';
 import { addBook, searchBooks, getAllBooks } from '../models/book';
-import { encrypt, decrypt, generateKeyPair } from '../utils/crypto';
+import { encrypt, decrypt } from '../utils/crypto';
 
 const router = express.Router();
-const { publicKey, privateKey } = generateKeyPair();
 
 // Log when routes are registered
 console.log('Registering book routes...');
-
-// Endpoint to get the server's public key
-router.get('/publicKey', (req, res) => {
-    console.log('Public key requested');
-    res.status(200).send({ publicKey });
-});
 
 // Simple version without encryption for now
 router.post('/addBook', (req, res) => {

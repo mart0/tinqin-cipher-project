@@ -7,6 +7,20 @@ import { Request, Response, NextFunction } from 'express';
 import { errorHandler } from './middleware/errorHandler';
 import bookRoutes from './routes/bookRoutes';
 
+// Extend Express application to include our custom properties
+declare global {
+    namespace Express {
+        interface Application {
+            locals: {
+                keys?: {
+                    publicKey: string;
+                    privateKey: string;
+                };
+            };
+        }
+    }
+}
+
 const app = express();
 
 // Middleware
@@ -19,7 +33,7 @@ app.use(morgan('combined'));
 
 // Test route to verify server is working
 app.get('/_healthcheck', (req, res) => {
-    console.log('Healthcheck route hit');
+    console.log('Health check route hit');
     res.status(200).send('Server is working!');
 });
 
