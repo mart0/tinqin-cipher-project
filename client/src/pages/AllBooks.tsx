@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
@@ -13,10 +13,34 @@ const AllBooks: React.FC = () => {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
 
+    // Fetch all books on component mount
     useEffect(() => {
         fetchBooks();
     }, []);
+
+    // Debounce the search query
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            setDebouncedQuery(query);
+        }, 500); // 500ms delay
+
+        // Cleanup function to clear the timeout if the query changes before the delay is over
+        return () => {
+            clearTimeout(timerId);
+        };
+    }, [query]);
+
+    // Trigger search when debounced query changes
+    useEffect(() => {
+        if (debouncedQuery) {
+            handleSearch();
+        } else if (debouncedQuery === '') {
+            // If query is cleared, fetch all books
+            fetchBooks();
+        }
+    }, [debouncedQuery]);
 
     const fetchBooks = async () => {
         setLoading(true);
@@ -45,12 +69,14 @@ const AllBooks: React.FC = () => {
     };
 
     const handleSearch = async () => {
+        if (!debouncedQuery) return;
+
         setLoading(true);
         setError('');
         try {
-            console.log('Searching books with query:', query);
-            console.log('Search URL:', `${API_BASE_URL}/searchBooks?q=${query}`);
-            const response = await axios.get<Book[]>(`${API_BASE_URL}/searchBooks?q=${query}`);
+            console.log('Searching books with query:', debouncedQuery);
+            console.log('Search URL:', `${API_BASE_URL}/searchBooks?q=${debouncedQuery}`);
+            const response = await axios.get<Book[]>(`${API_BASE_URL}/searchBooks?q=${debouncedQuery}`);
             console.log('Search response:', response.data);
             setBooks(response.data);
         } catch (error: any) {
@@ -71,6 +97,11 @@ const AllBooks: React.FC = () => {
         }
     };
 
+    // Handle input change
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+    };
+
     return (
         <div className="books-container">
             <h2>Book List</h2>
@@ -79,10 +110,11 @@ const AllBooks: React.FC = () => {
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Search books"
                 />
-                <button onClick={handleSearch} disabled={loading}>
+                {/* Search button is now optional since search happens automatically */}
+                <button onClick={() => handleSearch()} disabled={loading || !query}>
                     {loading ? 'Searching...' : 'Search'}
                 </button>
                 <button onClick={fetchBooks} disabled={loading}>

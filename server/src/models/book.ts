@@ -11,10 +11,12 @@ export const addBook = (book: Book) => {
 };
 
 export const searchBooks = (query: string): Book[] => {
+    const normalizedQuery = query.toLowerCase().trim();
+
     return books.filter(book =>
-        book.title.includes(query) ||
-        book.author.includes(query) ||
-        book.publicationDate.includes(query)
+        book.title.toLowerCase().includes(normalizedQuery) ||
+        book.author.toLowerCase().includes(normalizedQuery) ||
+        book.publicationDate.toLowerCase().includes(normalizedQuery)
     );
 };
 

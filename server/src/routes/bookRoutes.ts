@@ -44,9 +44,14 @@ router.get('/allBooks', (req, res) => {
 router.get('/searchBooks', (req, res) => {
     console.log('GET /searchBooks route hit');
     try {
-        const query = req.query.q as string;
+        const query = req.query.q as string || '';
         console.log('Search query:', query);
-        const books = searchBooks(query || '');
+
+        // If query is empty, return all books
+        const books = query.trim() === ''
+            ? getAllBooks()
+            : searchBooks(query);
+
         console.log('Search results:', books);
         res.status(200).json(books);
     } catch (error) {
