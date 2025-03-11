@@ -76,10 +76,18 @@ const AllBooks: React.FC = () => {
 
     // Wrap handleSearch in useCallback to prevent it from changing on every render
     const handleSearch = useCallback(async (e: React.FormEvent) => {
+        debugger
         e.preventDefault();
 
         if (isLoading || !clientKeys) {
             console.log('Keys not loaded yet, cannot search books');
+            return;
+        }
+
+        // Don't search if query is empty - just fetch all books instead
+        if (!searchQuery.trim()) {
+            console.log('Empty search query, fetching all books instead');
+            fetchBooks();
             return;
         }
 
@@ -125,10 +133,21 @@ const AllBooks: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [clientKeys, isLoading, searchQuery]);
+    }, [clientKeys, isLoading, searchQuery, fetchBooks]);
 
     // Effect for debouncing search query
     useEffect(() => {
+        // Don't set up debounce if keys aren't loaded
+        if (isLoading || !clientKeys) {
+            return;
+        }
+
+        // Only set up debounce if there's a search query
+        if (searchQuery.trim() === '') {
+            return;
+        }
+
+        console.log('Setting up debounced search for:', searchQuery);
         const timerId = setTimeout(() => {
             setDebouncedQuery(searchQuery);
         }, 500); // 500ms delay
@@ -136,30 +155,52 @@ const AllBooks: React.FC = () => {
         return () => {
             clearTimeout(timerId);
         };
-    }, [searchQuery]);
+    }, [searchQuery, isLoading, clientKeys]);
 
     // Trigger search when debounced query changes
     useEffect(() => {
-        if (debouncedQuery) {
-            const dummyEvent = { preventDefault: () => { } } as React.FormEvent;
-            handleSearch(dummyEvent);
+        // Don't search if there's no query or keys aren't loaded
+        if (!debouncedQuery || isLoading || !clientKeys) {
+            return;
         }
-    }, [debouncedQuery, handleSearch]);
 
-    // Fetch books when keys are loaded
+        console.log('Executing debounced search for:', debouncedQuery);
+        const dummyEvent = { preventDefault: () => { } } as React.FormEvent;
+        handleSearch(dummyEvent);
+    }, [debouncedQuery, handleSearch, isLoading, clientKeys]);
+
+    // Fetch books when keys are loaded or when search is cleared
     useEffect(() => {
-        if (!isLoading && clientKeys) {
+        if (isLoading || !clientKeys) {
+            return;
+        }
+
+        // If search is cleared, fetch all books
+        if (searchQuery === '' && debouncedQuery === '') {
+            console.log('Search cleared, fetching all books');
             fetchBooks();
         }
-    }, [isLoading, clientKeys, fetchBooks]);
+    }, [isLoading, clientKeys, fetchBooks, searchQuery, debouncedQuery]);
 
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
+        const newValue = e.target.value;
+        setSearchQuery(newValue);
+
+        // If search is cleared, immediately reset debounced query
+        if (newValue === '') {
+            setDebouncedQuery('');
+        }
     };
 
     // Create a dummy event for the search button
     const handleSearchButtonClick = () => {
+        if (!searchQuery.trim()) {
+            // If search is empty, just fetch all books
+            fetchBooks();
+            return;
+        }
+
         const dummyEvent = { preventDefault: () => { } } as React.FormEvent;
         handleSearch(dummyEvent);
     };
