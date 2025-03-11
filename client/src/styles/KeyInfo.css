@@ -1,0 +1,88 @@
+.key-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.key-info h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.key-status {
+  margin-bottom: 15px;
+}
+
+.key-status p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.key-text {
+  font-family: monospace;
+  background-color: #f1f1f1;
+  padding: 3px 6px;
+  border-radius: 3px;
+  color: #555;
+  font-size: 13px;
+}
+
+.key-text.private {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.key-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.key-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.toggle-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.toggle-button:hover {
+  background-color: #5a6268;
+}
+
+.regenerate-button {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.regenerate-button:hover {
+  background-color: #e0a800;
+}
+
+.key-info.loading {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.key-info.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 10px;
+  border-radius: 4px;
+} 

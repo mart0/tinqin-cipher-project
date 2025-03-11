@@ -157,4 +157,77 @@ button:disabled {
 
 .book-item p {
   margin: 5px 0;
+}
+
+/* Key Info Component */
+.key-info {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.key-info h3 {
+  margin-top: 0;
+  color: #343a40;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 10px;
+}
+
+.key-status {
+  margin-bottom: 15px;
+}
+
+.key-text {
+  font-family: monospace;
+  background-color: #e9ecef;
+  padding: 2px 5px;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+.key-text.private {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.key-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.key-actions button {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.key-actions button.regenerate {
+  background-color: #fd7e14;
+}
+
+.key-actions button.regenerate:hover {
+  background-color: #e76b00;
+}
+
+.key-info.loading {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  padding: 15px;
+}
+
+.key-info.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  padding: 15px;
+}
+
+.loading-message {
+  background-color: #e2e3e5;
+  color: #383d41;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
 } 

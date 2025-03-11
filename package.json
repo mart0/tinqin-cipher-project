@@ -43,6 +43,7 @@
     "typescript": "^5.8.2"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "concurrently": "^8.2.2",
     "ts-node-dev": "^2.0.0"
   }

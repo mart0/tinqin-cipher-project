@@ -1,117 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useKeys } from '../contexts/KeyContext';
+import { encrypt, decrypt } from '../utils/crypto';
 import { API_BASE_URL } from '../config';
+import '../styles/AddBook.css';
+
+interface BookFormData {
+    title: string;
+    author: string;
+    year: string;
+}
 
 const AddBook: React.FC = () => {
-    const [title, setTitle] = useState('');
-    const [author, setAuthor] = useState('');
-    const [publicationDate, setPublicationDate] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [serverStatus, setServerStatus] = useState('');
+    const [formData, setFormData] = useState<BookFormData>({
+        title: '',
+        author: '',
+        year: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const { clientKeys, serverPublicKey, isLoading } = useKeys();
 
-    // Test the server connection on component mount
-    useEffect(() => {
-        const testServer = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/_healthcheck`);
-                setServerStatus(`Server connection successful: ${response.data}`);
-                console.log('Server test successful:', response.data);
-            } catch (error) {
-                setServerStatus('Server connection failed');
-                console.error('Server test failed:', error);
-            }
-        };
-
-        testServer();
-    }, []);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        setMessage('');
-        setError('');
+
+        // Check if keys are loaded
+        if (isLoading || !clientKeys || !serverPublicKey) {
+            setError('Encryption keys are not available. Please wait or refresh the page.');
+            return;
+        }
+
+        setLoading(true);
+        setMessage(null);
+        setError(null);
 
         try {
-            const book = { title, author, publicationDate };
-            console.log('Submitting book:', book);
-            console.log('API URL:', `${API_BASE_URL}/addBook`);
+            // Convert year to number
+            const bookData = {
+                ...formData,
+                year: parseInt(formData.year, 10)
+            };
 
-            const response = await axios.post(`${API_BASE_URL}/addBook`, book);
-            console.log('Response:', response);
+            console.log('Submitting book data:', bookData);
 
-            setMessage('Book added successfully!');
-            // Clear form
-            setTitle('');
-            setAuthor('');
-            setPublicationDate('');
-        } catch (error: any) {
-            console.error('Error adding book:', error);
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-                console.error('Response headers:', error.response.headers);
-                setError(`Failed to add book: ${error.response.status} - ${error.response.data}`);
-            } else if (error.request) {
-                console.error('Request made but no response received:', error.request);
-                setError('Failed to add book: No response from server');
-            } else {
-                console.error('Error message:', error.message);
-                setError(`Failed to add book: ${error.message}`);
+            // Encrypt the book data with server's public key
+            const encryptedData = encrypt(JSON.stringify(bookData), serverPublicKey);
+            console.log('Data encrypted with server public key');
+
+            // Send encrypted data to server along with client's public key
+            const response = await fetch(`${API_BASE_URL}/addBook`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: encryptedData,
+                    clientPublicKey: clientKeys.publicKey
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const result = await response.json();
+            console.log('Received response:', result);
+
+            // Check if the response is encrypted
+            if (result.data) {
+                console.log('Received encrypted response, decrypting with client private key');
+                try {
+                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
+                    console.log('Decryption successful:', decryptedData);
+                    setMessage(decryptedData);
+                } catch (decryptError) {
+                    console.error('Failed to decrypt response:', decryptError);
+                    setError('Failed to decrypt server response. Please try again.');
+                    setMessage('Book added, but could not decrypt server message.');
+                }
+            } else {
+                // Handle unencrypted response
+                console.log('Received unencrypted response');
+                setMessage('Book added successfully');
+            }
+
+            // Clear form after successful submission
+            setFormData({
+                title: '',
+                author: '',
+                year: ''
+            });
+        } catch (err) {
+            console.error('Error adding book:', err);
+            setError('Failed to add book. Please try again.');
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
     return (
         <div className="add-book-container">
-            <h2>Add New Book</h2>
-            {serverStatus && <div className="server-status">{serverStatus}</div>}
-            {message && <div className="success-message">{message}</div>}
-            {error && <div className="error-message">{error}</div>}
+            <h1>Add New Book</h1>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="book-form">
                 <div className="form-group">
                     <label htmlFor="title">Title</label>
                     <input
-                        id="title"
                         type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter book title"
+                        id="title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
                         required
+                        disabled={loading || isLoading}
                     />
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="author">Author</label>
                     <input
-                        id="author"
                         type="text"
-                        value={author}
-                        onChange={(e) => setAuthor(e.target.value)}
-                        placeholder="Enter author name"
+                        id="author"
+                        name="author"
+                        value={formData.author}
+                        onChange={handleChange}
                         required
+                        disabled={loading || isLoading}
                     />
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="publicationDate">Publication Date</label>
+                    <label htmlFor="year">Publication Year</label>
                     <input
-                        id="publicationDate"
-                        type="date"
-                        value={publicationDate}
-                        onChange={(e) => setPublicationDate(e.target.value)}
+                        type="number"
+                        id="year"
+                        name="year"
+                        value={formData.year}
+                        onChange={handleChange}
                         required
+                        min="1000"
+                        max={new Date().getFullYear()}
+                        disabled={loading || isLoading}
                     />
                 </div>
 
-                <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Adding...' : 'Add Book'}
+                <button
+                    type="submit"
+                    disabled={loading || isLoading || !clientKeys || !serverPublicKey}
+                >
+                    {loading ? 'Adding Book...' : 'Add Book'}
                 </button>
             </form>
+
+            {message && <div className="success-message">{message}</div>}
+            {error && <div className="error-message">{error}</div>}
         </div>
     );
 };

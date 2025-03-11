@@ -1,125 +1,197 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { useKeys } from '../contexts/KeyContext';
+import { decrypt } from '../utils/crypto';
 import { API_BASE_URL } from '../config';
+import '../styles/AllBooks.css';
 
 interface Book {
+    id: string;
     title: string;
     author: string;
-    publicationDate: string;
+    year: number;
 }
 
 const AllBooks: React.FC = () => {
     const [books, setBooks] = useState<Book[]>([]);
-    const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
+    const { clientKeys, isLoading } = useKeys();
 
-    // Fetch all books on component mount
-    useEffect(() => {
-        fetchBooks();
-    }, []);
+    // Wrap fetchBooks in useCallback to prevent it from changing on every render
+    const fetchBooks = useCallback(async () => {
+        if (isLoading || !clientKeys) {
+            console.log('Keys not loaded yet, cannot fetch books');
+            return;
+        }
 
-    // Debounce the search query
+        setLoading(true);
+        setError('');
+
+        try {
+            console.log('Fetching books with client public key for encrypted response');
+            const response = await fetch(`${API_BASE_URL}/allBooks`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Public-Key': clientKeys.publicKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Received response:', result);
+
+            // Check if the response is encrypted
+            if (result.data) {
+                console.log('Received encrypted data, decrypting with client private key');
+                try {
+                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
+                    console.log('Decryption successful');
+                    if (decryptedData === '') {
+                        setBooks([]);
+                    } else {
+                        const parsedData = JSON.parse(decryptedData);
+                        setBooks(parsedData);
+                    }
+                } catch (decryptError) {
+                    console.error('Failed to decrypt data:', decryptError);
+                    setError('Failed to decrypt the book data. Please try again.');
+                }
+            } else {
+                // Handle unencrypted response
+                console.log('Received unencrypted data');
+                setBooks(result);
+            }
+        } catch (err) {
+            console.error('Error fetching books:', err);
+            setError('Failed to fetch books. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, [clientKeys, isLoading]);
+
+    // Wrap handleSearch in useCallback to prevent it from changing on every render
+    const handleSearch = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (isLoading || !clientKeys) {
+            console.log('Keys not loaded yet, cannot search books');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            console.log(`Searching for books with query: "${searchQuery}"`);
+            const response = await fetch(`${API_BASE_URL}/searchBooks?q=${encodeURIComponent(searchQuery)}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Public-Key': clientKeys.publicKey
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Received search response:', result);
+
+            // Check if the response is encrypted
+            if (result.data) {
+                console.log('Received encrypted search results, decrypting with client private key');
+                try {
+                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
+                    console.log('Decryption successful');
+                    const parsedData = JSON.parse(decryptedData);
+                    setBooks(parsedData);
+                } catch (decryptError) {
+                    console.error('Failed to decrypt search results:', decryptError);
+                    setError('Failed to decrypt the search results. Please try again.');
+                }
+            } else {
+                // Handle unencrypted search results
+                console.log('Received unencrypted search results');
+                setBooks(result);
+            }
+        } catch (err) {
+            console.error('Error searching books:', err);
+            setError('Failed to search books. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, [clientKeys, isLoading, searchQuery]);
+
+    // Effect for debouncing search query
     useEffect(() => {
         const timerId = setTimeout(() => {
-            setDebouncedQuery(query);
+            setDebouncedQuery(searchQuery);
         }, 500); // 500ms delay
 
-        // Cleanup function to clear the timeout if the query changes before the delay is over
         return () => {
             clearTimeout(timerId);
         };
-    }, [query]);
+    }, [searchQuery]);
 
     // Trigger search when debounced query changes
     useEffect(() => {
         if (debouncedQuery) {
-            handleSearch();
-        } else if (debouncedQuery === '') {
-            // If query is cleared, fetch all books
+            const dummyEvent = { preventDefault: () => { } } as React.FormEvent;
+            handleSearch(dummyEvent);
+        }
+    }, [debouncedQuery, handleSearch]);
+
+    // Fetch books when keys are loaded
+    useEffect(() => {
+        if (!isLoading && clientKeys) {
             fetchBooks();
         }
-    }, [debouncedQuery]);
-
-    const fetchBooks = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            console.log('Fetching books from:', `${API_BASE_URL}/allBooks`);
-            const response = await axios.get<Book[]>(`${API_BASE_URL}/allBooks`);
-            console.log('Books response:', response.data);
-            setBooks(response.data);
-        } catch (error: any) {
-            console.error('Error fetching books:', error);
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-                setError(`Failed to load books: ${error.response.status} - ${error.response.data}`);
-            } else if (error.request) {
-                console.error('Request made but no response received:', error.request);
-                setError('Failed to load books: No response from server');
-            } else {
-                console.error('Error message:', error.message);
-                setError(`Failed to load books: ${error.message}`);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSearch = async () => {
-        if (!debouncedQuery) return;
-
-        setLoading(true);
-        setError('');
-        try {
-            console.log('Searching books with query:', debouncedQuery);
-            console.log('Search URL:', `${API_BASE_URL}/searchBooks?q=${debouncedQuery}`);
-            const response = await axios.get<Book[]>(`${API_BASE_URL}/searchBooks?q=${debouncedQuery}`);
-            console.log('Search response:', response.data);
-            setBooks(response.data);
-        } catch (error: any) {
-            console.error('Error searching books:', error);
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-                setError(`Failed to search books: ${error.response.status} - ${error.response.data}`);
-            } else if (error.request) {
-                console.error('Request made but no response received:', error.request);
-                setError('Failed to search books: No response from server');
-            } else {
-                console.error('Error message:', error.message);
-                setError(`Failed to search books: ${error.message}`);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [isLoading, clientKeys, fetchBooks]);
 
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setQuery(e.target.value);
+        setSearchQuery(e.target.value);
+    };
+
+    // Create a dummy event for the search button
+    const handleSearchButtonClick = () => {
+        const dummyEvent = { preventDefault: () => { } } as React.FormEvent;
+        handleSearch(dummyEvent);
     };
 
     return (
         <div className="books-container">
-            <h2>Book List</h2>
+            <h1>All Books</h1>
 
             <div className="search-container">
-                <input
-                    type="text"
-                    value={query}
-                    onChange={handleInputChange}
-                    placeholder="Search books"
-                />
-                {/* Search button is now optional since search happens automatically */}
-                <button onClick={() => handleSearch()} disabled={loading || !query}>
-                    {loading ? 'Searching...' : 'Search'}
-                </button>
-                <button onClick={fetchBooks} disabled={loading}>
-                    Show All
-                </button>
+                <form onSubmit={handleSearch}>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleInputChange}
+                        placeholder="Search books"
+                        disabled={isLoading}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleSearchButtonClick}
+                        disabled={loading || !searchQuery || isLoading}
+                    >
+                        {loading ? 'Searching...' : 'Search'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={fetchBooks}
+                        disabled={loading || isLoading}
+                    >
+                        Show All
+                    </button>
+                </form>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -134,7 +206,7 @@ const AllBooks: React.FC = () => {
                         <li key={index} className="book-item">
                             <h3>{book.title}</h3>
                             <p>Author: {book.author}</p>
-                            <p>Published: {book.publicationDate}</p>
+                            <p>Published: {book.year}</p>
                         </li>
                     ))}
                 </ul>
