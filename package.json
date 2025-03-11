@@ -1,0 +1,48 @@
+{
+  "name": "tinqin-cipher-project",
+  "version": "1.0.0",
+  "description": "A simple web application that generates and uses two key pairs to cipher basic requests and responses between the client and the server.",
+  "homepage": "https://github.com/mart0/tinqin-cipher-project#readme",
+  "bugs": {
+    "url": "https://github.com/mart0/tinqin-cipher-project/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mart0/tinqin-cipher-project.git"
+  },
+  "license": "ISC",
+  "author": "Martin Marinov",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && ts-node src/server.ts",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build && cd ../server && tsc",
+    "dev": "concurrently \"npm run server:dev\" \"npm run client\"",
+    "server:dev": "cd server && ts-node-dev --respawn src/server.ts",
+    "setup": "npm install && cd client && npm install && cd ../server && npm install",
+    "test": "test"
+  },
+  "dependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "axios": "^1.8.2",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "ts-node-dev": "^2.0.0"
+  }
+}
