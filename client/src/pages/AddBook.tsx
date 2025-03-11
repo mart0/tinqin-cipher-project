@@ -62,7 +62,7 @@ const AddBook: React.FC = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    data: encryptedData,
+                    encryptedData,
                     clientPublicKey: clientKeys.publicKey
                 })
             });
@@ -70,26 +70,34 @@ const AddBook: React.FC = () => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
+            debugger
             const result = await response.json();
             console.log('Received response:', result);
 
-            // Check if the response is encrypted
-            if (result.data) {
-                console.log('Received encrypted response, decrypting with client private key');
+            // Check if the response is encoded
+            if (result.encryptedData) {
+                console.log('Received encoded response, decoding with client private key');
                 try {
-                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
-                    console.log('Decryption successful:', decryptedData);
-                    setMessage(decryptedData);
+                    const decryptedData = decrypt(result.encryptedData, clientKeys.privateKey);
+                    console.log('Decoding successful:', decryptedData);
+
+                    // Try to parse the decoded data
+                    try {
+                        const parsedData = JSON.parse(decryptedData);
+                        setMessage(parsedData.message || 'Book added successfully');
+                    } catch (parseError) {
+                        // If parsing fails, just use the decoded string
+                        setMessage(decryptedData);
+                    }
                 } catch (decryptError) {
-                    console.error('Failed to decrypt response:', decryptError);
-                    setError('Failed to decrypt server response. Please try again.');
-                    setMessage('Book added, but could not decrypt server message.');
+                    console.error('Failed to decode response:', decryptError);
+                    setError('Failed to decode server response. Please try again.');
+                    setMessage('Book added, but could not decode server message.');
                 }
             } else {
-                // Handle unencrypted response
-                console.log('Received unencrypted response');
-                setMessage('Book added successfully');
+                // Handle unencoded response
+                console.log('Received unencoded response');
+                setMessage(result.message || 'Book added successfully');
             }
 
             // Clear form after successful submission

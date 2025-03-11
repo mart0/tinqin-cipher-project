@@ -45,12 +45,12 @@ const AllBooks: React.FC = () => {
             const result = await response.json();
             console.log('Received response:', result);
 
-            // Check if the response is encrypted
-            if (result.data) {
-                console.log('Received encrypted data, decrypting with client private key');
+            // Check if the response is encoded
+            if (result.encryptedData) {
+                console.log('Received encoded data, decoding with client private key');
                 try {
-                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
-                    console.log('Decryption successful');
+                    const decryptedData = decrypt(result.encryptedData, clientKeys.privateKey);
+                    console.log('Decoding successful');
                     if (decryptedData === '') {
                         setBooks([]);
                     } else {
@@ -58,12 +58,12 @@ const AllBooks: React.FC = () => {
                         setBooks(parsedData);
                     }
                 } catch (decryptError) {
-                    console.error('Failed to decrypt data:', decryptError);
-                    setError('Failed to decrypt the book data. Please try again.');
+                    console.error('Failed to decode data:', decryptError);
+                    setError('Failed to decode the book data. Please try again.');
                 }
             } else {
-                // Handle unencrypted response
-                console.log('Received unencrypted data');
+                // Handle unencoded response
+                console.log('Received unencoded data');
                 setBooks(result);
             }
         } catch (err) {
@@ -102,21 +102,21 @@ const AllBooks: React.FC = () => {
             const result = await response.json();
             console.log('Received search response:', result);
 
-            // Check if the response is encrypted
-            if (result.data) {
-                console.log('Received encrypted search results, decrypting with client private key');
+            // Check if the response is encoded
+            if (result.encryptedData) {
+                console.log('Received encoded search results, decoding with client private key');
                 try {
-                    const decryptedData = decrypt(result.data, clientKeys.privateKey);
-                    console.log('Decryption successful');
+                    const decryptedData = decrypt(result.encryptedData, clientKeys.privateKey);
+                    console.log('Decoding successful');
                     const parsedData = JSON.parse(decryptedData);
                     setBooks(parsedData);
                 } catch (decryptError) {
-                    console.error('Failed to decrypt search results:', decryptError);
-                    setError('Failed to decrypt the search results. Please try again.');
+                    console.error('Failed to decode search results:', decryptError);
+                    setError('Failed to decode the search results. Please try again.');
                 }
             } else {
-                // Handle unencrypted search results
-                console.log('Received unencrypted search results');
+                // Handle unencoded search results
+                console.log('Received unencoded search results');
                 setBooks(result);
             }
         } catch (err) {
