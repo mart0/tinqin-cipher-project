@@ -1,14 +1,14 @@
 import React from 'react';
 import { KeyPair } from '../../utils/crypto';
 
-interface AddBookSubmitButtonProps {
+interface AddBookButtonProps {
     loading: boolean;
     isLoading: boolean;
     clientKeys: KeyPair | null;
     serverPublicKey: string | null;
 }
 
-const AddBookSubmitButton: React.FC<AddBookSubmitButtonProps> = ({
+const AddBookButton: React.FC<AddBookButtonProps> = ({
     loading,
     isLoading,
     clientKeys,
@@ -24,4 +24,4 @@ const AddBookSubmitButton: React.FC<AddBookSubmitButtonProps> = ({
     );
 };
 
-export default AddBookSubmitButton; 
+export default AddBookButton; 

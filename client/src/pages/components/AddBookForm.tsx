@@ -1,7 +1,7 @@
 import React from 'react';
 import { KeyPair } from '../../utils/crypto';
 import AddBookInput from './AddBookInput';
-import AddBookSubmitButton from './AddBookSubmitButton';
+import AddBookButton from './AddBookButton';
 
 interface BookFormData {
     title: string;
@@ -65,7 +65,7 @@ const AddBookForm: React.FC<AddBookFormProps> = ({
                 max={new Date().getFullYear()}
             />
 
-            <AddBookSubmitButton
+            <AddBookButton
                 loading={loading}
                 isLoading={isLoading}
                 clientKeys={clientKeys}

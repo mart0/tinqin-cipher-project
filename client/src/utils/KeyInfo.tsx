@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useKeys } from '../contexts/KeyContext';
+import { useKeys } from './KeyContext';
 import '../styles/KeyInfo.css';
 
 const KeyInfo: React.FC = () => {

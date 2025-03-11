@@ -1,4 +1,4 @@
-import { generateKeyPair, KeyPair } from '../utils/crypto';
+import { generateKeyPair, KeyPair } from './crypto';
 
 const KEY_STORAGE_KEY = 'client_keys';
 

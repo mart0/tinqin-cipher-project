@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { KeyPair } from '../utils/crypto';
-import { getOrCreateClientKeys, regenerateClientKeys } from '../services/keyService';
+import { KeyPair } from './crypto';
+import { getOrCreateClientKeys, regenerateClientKeys } from './keyService';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
@@ -17,7 +17,7 @@ const KeyContext = createContext<KeyContextType>({
   serverPublicKey: null,
   isLoading: true,
   error: null,
-  regenerateKeys: () => {}
+  regenerateKeys: () => { }
 });
 
 export const useKeys = () => useContext(KeyContext);
@@ -39,7 +39,7 @@ export const KeyProvider: React.FC<KeyProviderProps> = ({ children }) => {
         // Get or create client keys
         const keys = getOrCreateClientKeys();
         setClientKeys(keys);
-        
+
         // Fetch server's public key
         const response = await axios.get(`${API_BASE_URL}/publicKey`);
         setServerPublicKey(response.data.publicKey);
