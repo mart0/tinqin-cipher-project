@@ -6,8 +6,8 @@ A simple web application that generates and uses two key pairs to cipher basic r
 
 Before we dive into the project setup and installation, I have decided to record the following two Loom videos:
 
-- Project overview & tech challenges - 
-- UI overview & explanations -
+- Project overview & tech challenges - https://www.loom.com/share/9f259ae73b56442c92c97c0f9485e890?sid=7c2b105d-e2c3-4573-b31b-307cf02e0838
+- UI overview & explanations - https://www.loom.com/share/ab840b47ffad425086b1fe980ac2f89c?sid=2a2f4e9b-1dbb-4b50-b311-53f192d15a34
 
 I hope they give you better initial perspective of the code and the app in general.
 
