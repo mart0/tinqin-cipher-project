@@ -1,8 +1,16 @@
 import express from 'express';
 import { addBook, searchBooks, getAllBooks } from '../models/book';
 import { encrypt, decrypt } from '../utils/crypto';
+import { z } from 'zod';
 
 const router = express.Router();
+
+// Define Zod schema for book validation
+const BookSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    author: z.string().min(1, "Author is required"),
+    year: z.number().int().positive().max(new Date().getFullYear(), "Year cannot be in the future")
+});
 
 // Log when routes are registered
 console.log('Registering book routes...');
@@ -32,11 +40,21 @@ router.post('/addBook', async (req, res) => {
 
         console.log('Book data to add:', bookData);
 
-        // Add the book to our collection
-        addBook(bookData);
+        // Validate book data using Zod
+        const validationResult = BookSchema.safeParse(bookData);
+        if (!validationResult.success) {
+            console.error('Validation error:', validationResult.error);
+            return res.status(400).json({
+                error: 'Invalid book data',
+                details: validationResult.error.errors
+            });
+        }
+
+        // Add the validated book to our collection
+        addBook(validationResult.data);
 
         // Prepare response
-        const responseData = { message: 'Book added successfully', book: bookData };
+        const responseData = { message: 'Book added successfully', book: validationResult.data };
 
         // Check if we should encode the response
         if (req.body.clientPublicKey) {
