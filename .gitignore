@@ -3,3 +3,5 @@ node_modules
 dist/*
 server/keys.json
 server/coverage/*
+client/build/*
+client/coverage/*
