@@ -224,7 +224,7 @@ describe('crypto test suite', () => {
             // Arrange
             // Mock Buffer.from to always throw an error
             const originalBufferFrom = Buffer.from;
-            // @ts-ignore - Mocking for test purposes
+            // @ts-expect-error - Mocking for test purposes
             Buffer.from = jest.fn().mockImplementation(() => {
                 throw new Error('Simulated Buffer.from error');
             });
@@ -239,7 +239,7 @@ describe('crypto test suite', () => {
             expect(result).toBe(invalidData);
 
             // Clean up
-            // @ts-ignore - Restoring original function
+            // @ts-expect-error - Restoring original function
             Buffer.from = originalBufferFrom;
         });
 
