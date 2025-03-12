@@ -1,0 +1,55 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    # Server steps
+    - name: Install server dependencies
+      working-directory: ./server
+      run: npm ci
+
+    - name: Lint server code
+      working-directory: ./server
+      run: npm run lint
+
+    - name: Build server
+      working-directory: ./server
+      run: npm run build
+
+    - name: Run server tests
+      working-directory: ./server
+      run: npm test -- --coverage --silent
+      
+    # Client steps
+    - name: Install client dependencies
+      working-directory: ./client
+      run: npm ci
+      
+    - name: Lint client code
+      working-directory: ./client
+      run: npm run lint
+      
+    - name: Build client
+      working-directory: ./client
+      run: npm run build
+      
+    - name: Run client tests
+      working-directory: ./client
+      run: npm test -- --passWithNoTests 
