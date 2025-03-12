@@ -239,7 +239,6 @@ describe('crypto test suite', () => {
             expect(result).toBe(invalidData);
 
             // Clean up
-            // @ts-expect-error - Restoring original function
             Buffer.from = originalBufferFrom;
         });
 
