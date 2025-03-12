@@ -22,8 +22,7 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client\"",
     "server:dev": "cd server && ts-node-dev --respawn src/server.ts",
     "regenerate-keys": "cd server && ts-node src/scripts/regenerateKeys.ts",
-    "setup": "npm install && cd client && npm install && cd ../server && npm install",
-    "test": "test"
+    "setup": "npm install && cd client && npm install && cd ../server && npm install"
   },
   "dependencies": {
     "@types/node": "^22.13.10",
