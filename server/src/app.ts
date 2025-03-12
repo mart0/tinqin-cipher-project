@@ -3,19 +3,16 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { Request, Response, NextFunction } from 'express';
 import { errorHandler } from './middleware/errorHandler';
 import bookRoutes from './routes/bookRoutes';
 
 // Extend Express application to include our custom properties
-declare global {
-    namespace Express {
-        interface Application {
-            locals: {
-                keys?: {
-                    publicKey: string;
-                    privateKey: string;
-                };
+declare module 'express' {
+    interface Application {
+        locals: {
+            keys?: {
+                publicKey: string;
+                privateKey: string;
             };
         }
     }
