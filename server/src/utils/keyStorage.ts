@@ -32,7 +32,7 @@ export const getOrCreateKeyPair = (): KeyPair => {
 /**
  * Generates a new key pair and saves it to file
  */
-const createAndSaveNewKeyPair = (): KeyPair => {
+export const createAndSaveNewKeyPair = (): KeyPair => {
     const keyPair = generateKeyPair();
 
     try {
