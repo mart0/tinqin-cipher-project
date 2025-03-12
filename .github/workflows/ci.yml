@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  server-build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,6 @@ jobs:
         node-version: '22'
         cache: 'npm'
 
-    # Server steps
     - name: Install server dependencies
       working-directory: ./server
       run: npm ci
@@ -36,8 +35,20 @@ jobs:
     - name: Run server tests
       working-directory: ./server
       run: npm test -- --coverage --silent
-      
-    # Client steps
+
+  client-build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'npm'
+
     - name: Install client dependencies
       working-directory: ./client
       run: npm ci
@@ -52,4 +63,4 @@ jobs:
       
     - name: Run client tests
       working-directory: ./client
-      run: npm test -- --passWithNoTests 
+      run: npm test -- --passWithNoTests

@@ -2,6 +2,7 @@ node_modules
 .vscode/*
 dist/*
 server/keys.json
+server/dist/*
 server/coverage/*
 client/build/*
 client/coverage/*
